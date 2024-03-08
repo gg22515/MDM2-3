@@ -1,3 +1,8 @@
+TODO CURRENTLY:
+ - Read through paper and data thoroughly
+ - Read similar papers
+ - Compile any relevant methods and data
+
 Main components:
 Fish input brain (What input variables should we feed into the neural network)
 Fish decision brain (Takes in input variables, decides fish position at next step in time)
