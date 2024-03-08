@@ -1,0 +1,12 @@
+Main components:
+Fish input brain (What input variables should we feed into the neural network)
+Fish decision brain (Takes in input variables, decides fish position at next step in time)
+
+Plan:
+ - Read paper, see what they do to determine fish movement characteristics
+ - Use heuristic + ML approach to determine which fish is looking at who (Further the research of the paper using ML)
+ - Decide on input variables / input variable machine for the main fish brain
+ - Build fish brain 
+ - Test artificial fish accuracy to real fish
+ - Test accuracy with 6th fish
+ - Attempt to steer the herd using a 6th fake fish
