@@ -11,9 +11,15 @@ import polarisation2 as p2
 import matplotlib.pyplot as plt
 import incidence as inc
 import turnangle as tna
+import moveav as mov
 
-
-df = pd.read_csv("2\exp02H20141128_16h06.csv")
+files_to_read = ["2\exp02H20141128_16h06.csv","2\exp02H20141127_14h13.csv" \
+                 "2\exp02H20141127_16h29.csv", "2\exp02H20141204_16h01.csv", \
+                     "2\exp02H20141204_16h01.csv" "2\exp02H20141204_17h28.csv", \
+                         "2\exp02H20141205_16h11.csv","2\exp02H20141205_17h37.csv" \
+                             "2\exp02H20141211_11h11.csv","2\exp02H20141212_15h45.csv" \
+                                 "2\exp02H20141212_17h12.csv"]
+df = pd.read_csv(files_to_read[0])
 
 invalid_strings = ['#DIV/0!', 'NA', '#VALUE!']
 for col in df.columns:
@@ -84,27 +90,22 @@ for tu in range(0,n-1):
     if incidences1[tu] * incidences1[tu+1] < 0:
         turningpoints = np.append(turningpoints,tu)
 
-
-t = np.linspace(1,n,n)
-
-#Turning Angles
-
-turning_angles = np.array([])
-for val in range(2,n):
-    turnangle = tna.turnangle(x1[val-2],x1[val-1],x1[val],y1[val-2],y1[val-1],y1[val])
-    turning_angles = np.append(turning_angles,turnangle)
+x1start = x1[635:685]
+y1start = y1[635:685]
+x2start = x2[635:685]
+y2start = y2[635:685]
+inc_start1 = incidences1[635:685]
+inc_start2 = incidences2[635:685]
 
 
-for i in range(0,len(turning_angles)-1):
-    if turning_angles[i] < np.pi/3:
-        first_dist = turning_angles[:i]
-        
-        
-# plt.hist(turning_angles,bins = 100, color = 'red')
-# plt.xlabel('Turning Angles')
-# plt.ylabel('Frequency')
-# plt.title('Turning Angles of Fish 1')
-# plt.show()
+x1end = x1[686:736]
+y1end = y1[686:736]
+y1end = x2[686:736]
+y2end = y2[686:736]
+inc_end1 = incidences1[686:736]
+inc_end2 = incidences2[686:736]
+
+
 
 
 
