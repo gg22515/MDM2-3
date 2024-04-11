@@ -5,8 +5,8 @@ import matplotlib.animation as animation
 
 data_file = "C:/Users/TheBuild/OneDrive - University of Bristol/Documents/University/Year 2/MDM2/Project3/FishData/exp02H20141128_16h06updated.csv"
 #change this to pick which row to start and change nrows to say how many rows to animate
-start_row = 148900
-df = pd.read_csv(data_file,skiprows=start_row, nrows=1000, names=['X1','Y1','H1','X2','Y2','H2','VX1','VY1','VX2','VY2','UVX1','UVY1','UVX2','UVY2'])
+start_row = 150
+df = pd.read_csv(data_file,skiprows=start_row, nrows=500, names=['X1','Y1','H1','X2','Y2','H2','VX1','VY1','VX2','VY2','UVX1','UVY1','UVX2','UVY2'])
 
 fig, ax = plt.subplots()
 line1, = ax.plot([], [], label='Fish 1') 
