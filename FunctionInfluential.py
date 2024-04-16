@@ -38,7 +38,7 @@ def influential(file,start_frame,num_frames):
     Gamma_values = []
     for t_k in range(len(fish1_velocities) - w):  
         max_correlation = 0.95  # Initialize to find the maximum
-        for tau_r in time_delays:
+        for tau_r in range(min(t_k,max_time_delay)):
             # Calculate C_ij(t_k, tau_r, w) 
             start_index = t_k 
             end_index = t_k + w
@@ -63,6 +63,8 @@ def influential(file,start_frame,num_frames):
 
 
  
+#put file to test function
+#data_file = ''
 
-
-
+#gamma = influential(data_file,36,700)
+#print(gamma)
