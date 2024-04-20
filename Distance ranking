@@ -1,59 +1,162 @@
-import os
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import csv
+import pandas as pd
 
-# Directory containing the CSV files
-directory_path = r"C:\Users\harry\Documents\R_to_excel\excel_files_5fish"
- 
-csv_files = sorted([filename for filename in os.listdir(directory_path) if filename.endswith(".csv")])
+def incidence(x1, y1, h1):
+    angle = np.arctan(y1 / x1)
+    incid = h1 - angle
+    return incid
 
- 
-for filename in csv_files:
-    if filename.endswith(".csv"):
-        
-        df = pd.read_csv(os.path.join(directory_path, filename))
+def moveav(incidence, window_size, i=0):
+    moving_averages = np.array([])
+    while i < len(incidence) - window_size + 1:
+        window = incidence[i : i + window_size]
+        window_average = round(sum(window) / window_size, 2)
+        moving_averages = np.append(moving_averages, window_average)
+        i += 1
+    threshold = max(abs(moving_averages))
+    for value in range(0, len(incidence)):
+        if abs(incidence[value]) > threshold:
+            start = value
+            break
+    return value
 
-        # Calculate the distance between the first fish and the other four fish for each frame
-        closest_fish_count = [0, 0, 0, 0]
+# Read the CSV file
+file_path = r"C:\Users\harry\Documents\appended_folder_for_5_fish\exp05H20141001_10h05.csv"
+data = pd.read_csv(file_path)
 
-        for frame in range(len(df)):
-            first_fish_displacement = df.iloc[frame, 2:4].values  # X and Y displacement of the first fish
-            distances = []  # List to store distances between the first fish and other fish
-            for i in range(1, 5):  
-                other_fish_displacement = df.iloc[frame, 14*i+2:14*i+4].values  # X and Y displacement of the other fish
-                distance = ((first_fish_displacement - other_fish_displacement) ** 2).sum() ** 0.5 
-                distances.append(distance)
-            closest_fish_index = distances.index(min(distances))  
-            closest_fish_count[closest_fish_index] += 1  # Increment count for closest fish
+# Drop rows with empty cells
+data = data.dropna()
 
-        
-        total_frames = len(df)
-        proportion = [(count / total_frames) for count in closest_fish_count]
+x, y, vx, vy, headings, ux, uy = [], [], [], [], [], [], []
+for i in range(5):
+    x.append(np.array(data['X'+str(i+1)]).astype(float))
+    y.append(np.array(data['Y'+str(i+1)]).astype(float))
+    headings.append(np.array(data['H'+str(i+1)]).astype(float))
+    vx.append(np.array(data['VX'+str(i+1)]).astype(float))
+    vy.append(np.array(data['VY'+str(i+1)]).astype(float))
+    ux.append(np.array(data['UX'+str(i+1)]).astype(float))
+    uy.append(np.array(data['UY'+str(i+1)]).astype(float))
 
-         
-        plt.figure(figsize=(10, 8))
+incidences = [[] for _ in range(5)]
+for val in range(len(x[1])):
+    for i in range(5):
+        angle = incidence(x[i][val], y[i][val], headings[i][val])
+        incidences[i].append(angle)
 
-        plt.subplot(2, 1, 1)
-        fish_labels = ["Fish 2", "Fish 3", "Fish 4", "Fish 5"]
-        plt.bar(fish_labels, proportion)
-        plt.ylabel("Proportion (%)")
-        plt.title("Distance Rank")
+# Convert incidences to NumPy arrays and perform modulo operation
+for i in range(5):
+    incidences[i] = np.mod(np.array(incidences[i]) + np.pi, 2 * np.pi) - np.pi
+
+turningpoints = [np.array([]) for _ in range(5)]  # EXACT FRAME THE U-TURN TAKES PLACE
+for tu in range(0, len(x[0]) - 1):
+    for i in range(5):
+        if incidences[i][tu] * incidences[i][tu + 1] < 0:
+            turningpoints[i] = np.append(turningpoints[i], tu)
+
+for i in range(5):
+    to_remove = []
+    for l in range(len(turningpoints[i])):
+        if turningpoints[i][l] < 100:
+            to_remove.append(l)
+        if abs(turningpoints[i][l] - len(x[i])) < 100:
+            to_remove.append(l)
+    turningpoints[i] = np.delete(turningpoints[i], to_remove)
+
+# Calculate the displacement of each fish from its initial position
+displacements = []
+for i in range(5):
+    dx = x[i][-1] - x[i][0]
+    dy = y[i][-1] - y[i][0]
+    displacement = np.sqrt(dx**2 + dy**2)
+    displacements.append(displacement)
 
 
-        plt.subplot(2, 1, 2)
-        for i in range(5):
-            fish_displacement = df.iloc[:, 14*i+2:14*i+4]
-            plt.plot(fish_displacement.iloc[:, 0], fish_displacement.iloc[:, 1], label=f"Fish {i+1}")
-            # Denote the start of each fish's path
-            plt.scatter(fish_displacement.iloc[0, 0], fish_displacement.iloc[0, 1], color='red', marker='o')
 
-        
-        plt.xlabel("X Displacement")
-        plt.ylabel("Y Displacement")
-        plt.title("Paths of 5 Fish")
-        plt.legend()
 
-        
-        plt.tight_layout()
-        plt.suptitle(f"Data from {filename}", y=1.05)  # Add a title for the entire plot
-        plt.show()
+
+# Calculate the displacement of each fish from its initial position
+displacements = []
+velocities = []
+for i in range(5):
+    dx = x[i][-1] - x[i][0]
+    dy = y[i][-1] - y[i][0]
+    displacement = np.sqrt(dx**2 + dy**2)
+    displacements.append(displacement)
+    velocity = np.sqrt(vx[i][-1]**2 + vy[i][-1]**2)
+    velocities.append(velocity)
+
+# Determine the leader fish based on displacement and velocity
+leader_fish_index = np.argmax([displacement * velocity for displacement, velocity in zip(displacements, velocities)])
+
+# Create a dictionary to store distances for each U-turn
+distances_dict = {i: [] for i in range(5)}
+
+# Create a dictionary to store the count of times each fish is the closest to the leader fish
+closest_fish_count = {i: 0 for i in range(5)}
+
+with open('uturns_output.csv', 'w', newline='') as csvfile:
+    # Create a CSV writer object
+    writer = csv.writer(csvfile)
+    
+    # Write the header row
+    writer.writerow(['Fish', 'U-turn Frame', 'Duration (Frames)', 'Leader Fish'])
+    for i in range(5):
+        for pos in range(len(turningpoints[i])):
+            # Check if pos is within bounds
+            if (100 <= int(turningpoints[i][pos]) <= len(x[i]) - 100):
+                # Process the turning point data
+                xst = x[i][int(turningpoints[i][pos]) - 100:int(turningpoints[i][pos])]
+                yst = y[i][int(turningpoints[i][pos]) - 100:int(turningpoints[i][pos])]
+                vxst = vx[i][int(turningpoints[i][pos]) - 100:int(turningpoints[i][pos])]
+                vyst = vy[i][int(turningpoints[i][pos]) - 100:int(turningpoints[i][pos])]
+                incst = incidences[i][int(turningpoints[i][pos]) - 100:int(turningpoints[i][pos])]
+
+                xen = x[i][int(turningpoints[i][pos]):int(turningpoints[i][pos]) + 100]
+                yen = y[i][int(turningpoints[i][pos]):int(turningpoints[i][pos]) + 100]
+                incen = incidences[i][int(turningpoints[i][pos]):int(turningpoints[i][pos]) + 100]
+
+                uturnstart = moveav(incst, 5)
+                uturnend = uturnstart
+
+                for j in range(1, len(incen)):
+                    if abs(incen[j] - incen[0]) >= np.pi:
+                        uturnend += j
+                        break
+
+                if uturnstart != uturnend:
+                    duration_fish = uturnend - uturnstart
+                    if duration_fish != 0:
+                        # Calculate the angle of the velocity vector for each fish
+                        angles = []
+                        for k in range(5):
+                            angle = np.arctan2(vy[k][int(turningpoints[i][pos])], vx[k][int(turningpoints[i][pos])])
+                            angles.append(angle)
+
+                        # Determine the leader fish based on the angle of the velocity vector
+                        leader_fish_index = np.argmax(angles)
+                        leader_fish = leader_fish_index + 1  # Fish numbering is 1-based, not 0-based
+                        writer.writerow([f"Fish {i+1}", int(turningpoints[i][pos]), duration_fish, f"Fish {leader_fish}"])
+
+                        # Calculate the Euclidean distance between each fish and the leader fish
+                        distances = []
+                        for k in range(5):
+                            dx = x[k][int(turningpoints[i][pos])] - x[leader_fish_index][int(turningpoints[i][pos])]
+                            dy = y[k][int(turningpoints[i][pos])] - y[leader_fish_index][int(turningpoints[i][pos])]
+                            distance = np.sqrt(dx**2 + dy**2)
+                            distances.append(distance)
+
+                        # Determine which fish is the closest to the leader fish
+                        closest_fish_index = np.argmin(distances)
+                        closest_fish_count[closest_fish_index] += 1
+
+# Calculate the proportion of the journey during which each fish is the closest to the leader fish
+proportions = [count / sum(closest_fish_count.values()) for count in closest_fish_count.values()]
+
+# Create a bar chart
+plt.bar(range(1, 6), proportions, tick_label=['Fish 1', 'Fish 2', 'Fish 3', 'Fish 4', 'Fish 5'])
+plt.xlabel('Fish')
+plt.ylabel('Proportion of Journey Closest to Leader')
+plt.title('Proportion of Journey During Which Each Fish is the Closest to the Leader Fish')
+plt.show()
