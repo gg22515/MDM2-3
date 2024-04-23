@@ -1,5 +1,5 @@
 README:
-This README file includes descriptions and functions of all relevant code used for this project and how to run them.
+This README file includes descriptions and functions of all relevant code used for this project and how to run them. ALL codes may be ran in relevant software without any extra steps. [PLEASE CORRECT THIS IF CODES ARE USED WHICH ARE OTHERWISE]
 
 
 2fishPosTurn: Analyses all fish U-turns that occur in a single dataset and outputs two bar charts, one for the Position Rank of fish that are influential neighbours to any other fish, measured at every frame of U-turn, and the second bar chart showing a measure of the order of which fish start their U-turn first, and whether or not they are also an influential neighbour
