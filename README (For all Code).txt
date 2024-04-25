@@ -30,7 +30,7 @@ Input for 'twogroupvelocity' - vx1,vy1,vx2,vy2, which represent the 2D component
 Input for 'fivegroupvelocity' - data, which is specifically the 5-fish dataset the user is working on, with all of the columns, but only the rows which correspond to the frames with which they wish to calculate the average group velocity.
 
 
-
+Polarisation and correlation - code generated in matlab. Functions are used to compute correlation and polarisation between a group of two and five fish. To change wich rows of the data to compute the metrics on the user must simply change the start and end row of the code.
 
 
 
